@@ -5,7 +5,7 @@ summary = "Litematica for Horizon: schematics as ghost blocks, a verifier, mater
 authors = ["ruslantnr2-lang", "keksi2k"]
 license = "MIT"
 description = """
-Promatica is a re-creation of **Litematica** (with its **printer**) for Horizon. Load a schematic, see it as ghost blocks in your world, check your build against it, get a material list, and let the printer place the missing blocks.
+Promatica is an independent continuation based on the MIT-licensed **Horizonmatica** project by keksi2k. It recreates the behaviour of **Litematica** (with its **printer**) for Horizon. Load a schematic, see it as ghost blocks in your world, check your build against it, get a material list, and let the printer place the missing blocks.
 
 ## Features
 - **Formats:** `.litematic` (versions 1–7, several regions), `.schem` (Sponge v1–v3: WorldEdit, FAWE, Amulet, Axiom), `.schematic` (MCEdit / WorldEdit up to 1.12) and vanilla structure `.nbt`. Older files are upgraded with Horizon's data fixer, the same way old worlds are.
