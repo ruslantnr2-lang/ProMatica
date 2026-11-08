@@ -7,7 +7,7 @@ version = "0.1.0"
 
 # The mod uses game internals beyond the stable hook points (block models, the view, placement
 # prediction, the entity geometry), so it is pinned to the Horizon commit it was checked against:
-# Nightly 2026-11-04 (67dad0d). For another Nightly, set its commit here (see README.md).
+# Nightly 2026-11-08 (fdc87ae; hook API 411). For another Nightly, set its commit here (see README.md).
 [compatibility]
 horizon_revision = "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca"
 
