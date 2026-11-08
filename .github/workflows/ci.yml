@@ -26,7 +26,7 @@ env:
 jobs:
   validate-and-build:
     name: Test, patch and build Horizon client
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 180
     steps:
       - name: Check out Promatica
