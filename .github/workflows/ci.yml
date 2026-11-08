@@ -112,13 +112,13 @@ jobs:
         working-directory: ${{ runner.temp }}/horizon-with-promatica
         run: |
           cargo check --locked --message-format=short \
-            -p horizon-client --bin horizon-client --features horizon-client/mods
+            -p horizon-client --bin horizon-client
 
       - name: Build the patched Horizon client
         working-directory: ${{ runner.temp }}/horizon-with-promatica
         run: |
           cargo build --profile fast --locked \
-            -p horizon-client --bin horizon-client --features horizon-client/mods
+            -p horizon-client --bin horizon-client
 
       - name: Upload Promatica package
         uses: actions/upload-artifact@v4
