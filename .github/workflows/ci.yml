@@ -42,7 +42,7 @@ jobs:
           cargo --version
 
       - name: Check formatting
-        run: cargo fmt --manifest-path mixins/promatica/core/Cargo.toml -- --check
+        run: rustfmt --check mixins/promatica/core/src/lib.rs
 
       - name: Test game-independent crates
         run: cargo test --workspace
