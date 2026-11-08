@@ -84,6 +84,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libasound2-dev libudev-dev pkg-config rsync
 
+      - name: Prepare a symlink-free Horizon source tree
+        run: |
+          mkdir -p "$RUNNER_TEMP/horizon-source"
+          rsync -aL --delete --exclude='.git/' "$GITHUB_WORKSPACE/horizon/" "$RUNNER_TEMP/horizon-source/"
+          if find "$RUNNER_TEMP/horizon-source" -type l -print -quit | grep -q .; then
+            echo "::error::Horizon source still contains symlinks"
+            exit 1
+          fi
+
       - name: Install the matching horizon-mixins CLI
         run: |
           cargo install --locked --git https://github.com/horizon-rust/horizon-mixins \
@@ -95,7 +104,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/promatica-mods/promatica"
           cp -a mixins/promatica/. "$RUNNER_TEMP/promatica-mods/promatica/"
           horizon-mixins apply \
-            --workspace "$GITHUB_WORKSPACE/horizon" \
+            --workspace "$RUNNER_TEMP/horizon-source" \
             --mods "$RUNNER_TEMP/promatica-mods" \
             --out "$RUNNER_TEMP/horizon-with-promatica"
 
