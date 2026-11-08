@@ -1,0 +1,73 @@
+# horizon-menus: the menu screen's hooks. tools/vendor_menus.py prints this with MODID replaced;
+# paste it into the bundle's horizon-mixin.toml. The targets are functions of the Debug Options
+# screen (game/debug_options.rs) and `pauses_game`, so the bundle is pinned to a Horizon commit.
+
+[[injection]]
+id = "menus_screen_draw"
+target = "horizon_client::game::debug_options::Game<'_>::draw_debug_options"
+kind = "HEAD"
+helper = "menus_screen_draw.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "batch", ty = "&mut horizon_client::hud::HudBatch", value = "&mut *batch" },
+]
+
+[[injection]]
+id = "menus_screen_click"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_click"
+kind = "HEAD"
+helper = "menus_screen_click.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "menus_screen_release"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_release"
+kind = "HEAD"
+helper = "menus_screen_release.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "menus_screen_scroll"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_scroll"
+kind = "HEAD"
+helper = "menus_screen_scroll.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "delta", ty = "f32", value = "delta" },
+]
+
+[[injection]]
+id = "menus_screen_key"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_key"
+kind = "HEAD"
+cancellable = true
+helper = "menus_screen_key.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "event", ty = "&winit::event::KeyEvent", value = "event" },
+]
+
+[[injection]]
+id = "menus_screen_type"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_type"
+kind = "HEAD"
+helper = "menus_screen_type.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "typed", ty = "&str", value = "typed" },
+]
+
+[[injection]]
+id = "menus_screen_close"
+target = "horizon_client::game::debug_options::Game<'_>::close_debug_options"
+kind = "HEAD"
+helper = "menus_screen_close.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "menus_screen_pauses"
+target = "horizon_client::game::Game<'_>::pauses_game"
+kind = "HEAD"
+cancellable = true
+helper = "menus_screen_pauses.rs"
+bindings = [{ name = "game", ty = "&crate::game::Game<'_>", value = "&*self" }]

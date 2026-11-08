@@ -1,0 +1,5 @@
+# Development workspace only: lets `cargo test` run on the mod's own crate outside Horizon.
+# The bundle that Horizon builds is `mixins/promatica/` (horizon-mixin.toml); this file is not part of it.
+[workspace]
+resolver = "2"
+members = ["mixins/promatica/core", "libs/horizon-menus/core"]

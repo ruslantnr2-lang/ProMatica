@@ -1,0 +1,269 @@
+# Promatica — a native mod (horizon-mixins bundle).
+# Build: horizon-launcher native-build <this folder's parent> --trust-native-code
+
+[mod]
+id = "promatica"
+version = "0.1.0"
+
+# The mod uses game internals beyond the stable hook points (block models, the view, placement
+# prediction, the entity geometry), so it is pinned to the Horizon commit it was checked against:
+# Nightly 2026-11-04 (67dad0d). For another Nightly, set its commit here (see README.md).
+[compatibility]
+horizon_revision = "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca"
+
+# ---------------------------------------------------------------- modules
+
+# Game side: state, commands, HUD, verifier, printer -> crate::game::promatica
+[[module]]
+id = "runtime"
+file = "crates/horizon-client/src/game.rs"
+name = "promatica"
+source = "runtime.rs"
+
+# Render side: the overlay's scene and GPU pass -> horizon_client_render::gfx::native_render::promatica_bridge
+[[module]]
+id = "bridge"
+file = "crates/horizon-client-render/src/gfx/native_render.rs"
+name = "promatica_bridge"
+source = "bridge.rs"
+visibility = "pub"
+
+# horizon-menus (libs/horizon-menus, copied in by tools/vendor_menus.py): the menu on the mod's
+# page in Options > Mods -> crate promatica_menus + module crate::game::promatica_menus
+[[module]]
+id = "menus_game"
+file = "crates/horizon-client/src/game.rs"
+name = "promatica_menus"
+source = "menus_game.rs"
+
+[[crate]]
+id = "menus"
+path = "menus"
+
+# The game-independent logic (file format, transforms, verifier, materials, printer planning).
+[[crate]]
+id = "core"
+path = "core"
+
+# ---------------------------------------------------------------- hooks
+
+[[injection]]
+id = "tick"
+hook = "tick"
+hook_version = 1
+kind = "HEAD"
+helper = "tick.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "frame"
+hook = "frame"
+hook_version = 1
+kind = "HEAD"
+helper = "frame.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "hud"
+hook = "hud"
+hook_version = 1
+kind = "HEAD"
+helper = "hud.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "batch", ty = "&mut horizon_client::hud::HudBatch", value = "&mut *batch" },
+  { name = "corners", ty = "&mut horizon_client::extras_hud::Corners", value = "&mut *corners" },
+]
+
+[[injection]]
+id = "key"
+hook = "key"
+hook_version = 1
+kind = "HEAD"
+helper = "key.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "key", ty = "&str", value = "key" },
+  { name = "pressed", ty = "bool", value = "pressed" },
+]
+
+[[injection]]
+id = "wheel"
+hook = "wheel"
+hook_version = 1
+kind = "HEAD"
+helper = "wheel.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "steps", ty = "f32", value = "steps" },
+  { name = "claimed", ty = "&mut bool", value = "&mut *claimed" },
+]
+
+# The selection tool: a mouse button while playing (no hook point for the client's own clicks).
+[[injection]]
+id = "mouse"
+target = "horizon_client::game::Game<'_>::play_mouse"
+kind = "HEAD"
+cancellable = true
+helper = "mouse.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "button", ty = "winit::event::MouseButton", value = "button" },
+  { name = "pressed", ty = "bool", value = "pressed" },
+]
+
+# The chat's completions: the mod's subcommands in the tree it completes with (the "commands" hook
+# only names the commands; everything after the name would be free text).
+[[injection]]
+id = "chat_tree"
+target = "horizon_client::game::chat::Game<'_>::chat_tree_for"
+kind = "HEAD"
+cancellable = true
+helper = "chat_tree.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "base", ty = "Option<&horizon_client::command::Dispatcher>", value = "base" },
+]
+
+[[injection]]
+id = "command"
+hook = "command"
+hook_version = 1
+kind = "HEAD"
+helper = "command.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "command", ty = "&str", value = "command" },
+  { name = "ran", ty = "&mut bool", value = "&mut *ran" },
+]
+
+[[injection]]
+id = "commands"
+hook = "commands"
+hook_version = 1
+kind = "HEAD"
+helper = "commands.rs"
+bindings = [{ name = "commands", ty = "&mut Vec<&'static str>", value = "&mut *commands" }]
+
+[[injection]]
+id = "list"
+hook = "mods"
+hook_version = 1
+kind = "HEAD"
+helper = "list.rs"
+bindings = [{ name = "mods", ty = "&mut Vec<crate::game::native_hooks::NativeMod>", value = "&mut *mods" }]
+
+[[injection]]
+id = "settings"
+hook = "settings"
+hook_version = 1
+kind = "HEAD"
+helper = "settings.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "mod_id", ty = "&str", value = "mod_id" },
+  { name = "buttons", ty = "&mut Vec<String>", value = "&mut *buttons" },
+]
+
+[[injection]]
+id = "click"
+hook = "settings_click"
+hook_version = 1
+kind = "HEAD"
+helper = "click.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "mod_id", ty = "&str", value = "mod_id" },
+  { name = "button", ty = "usize", value = "button" },
+]
+
+
+# The overlay: drawn in a pass of its own once the world is drawn (hook API 58).
+[[injection]]
+id = "world_drawn"
+hook = "world_drawn"
+hook_version = 1
+kind = "HEAD"
+helper = "world_drawn.rs"
+bindings = [{ name = "world", ty = "&mut crate::gfx::native_render::WorldDrawn<'_>", value = "&mut *world" }]
+
+[[injection]]
+id = "render_needs"
+hook = "render_needs"
+hook_version = 1
+kind = "HEAD"
+helper = "render_needs.rs"
+bindings = [{ name = "needs", ty = "&mut crate::gfx::native_render::RenderNeeds", value = "&mut *needs" }]
+
+# ---------------------------------------------------------------- the menu screen (horizon-menus)
+
+[[injection]]
+id = "menus_screen_draw"
+target = "horizon_client::game::debug_options::Game<'_>::draw_debug_options"
+kind = "HEAD"
+helper = "menus_screen_draw.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "batch", ty = "&mut horizon_client::hud::HudBatch", value = "&mut *batch" },
+]
+
+[[injection]]
+id = "menus_screen_click"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_click"
+kind = "HEAD"
+helper = "menus_screen_click.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "menus_screen_release"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_release"
+kind = "HEAD"
+helper = "menus_screen_release.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "menus_screen_scroll"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_scroll"
+kind = "HEAD"
+helper = "menus_screen_scroll.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "delta", ty = "f32", value = "delta" },
+]
+
+[[injection]]
+id = "menus_screen_key"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_key"
+kind = "HEAD"
+cancellable = true
+helper = "menus_screen_key.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "event", ty = "&winit::event::KeyEvent", value = "event" },
+]
+
+[[injection]]
+id = "menus_screen_type"
+target = "horizon_client::game::debug_options::Game<'_>::debug_options_type"
+kind = "HEAD"
+helper = "menus_screen_type.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "typed", ty = "&str", value = "typed" },
+]
+
+[[injection]]
+id = "menus_screen_close"
+target = "horizon_client::game::debug_options::Game<'_>::close_debug_options"
+kind = "HEAD"
+helper = "menus_screen_close.rs"
+bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" }]
+
+[[injection]]
+id = "menus_screen_pauses"
+target = "horizon_client::game::Game<'_>::pauses_game"
+kind = "HEAD"
+cancellable = true
+helper = "menus_screen_pauses.rs"
+bindings = [{ name = "game", ty = "&crate::game::Game<'_>", value = "&*self" }]
+

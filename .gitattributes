@@ -1,0 +1,3 @@
+# The .hnmod is built from these bytes: no line ending conversion, so a checkout rebuilds
+# the same SHA-256 on every system (tools/package.py).
+mixins/** -text

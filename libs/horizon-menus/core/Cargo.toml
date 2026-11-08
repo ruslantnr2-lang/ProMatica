@@ -1,0 +1,9 @@
+[package]
+# A mod that vendors this crate renames it to `<mod id>-menus` (tools/vendor_menus.py does).
+name = "horizon-menus"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Menus and settings for Horizon native mods: a settings schema, pages, and the buttons of a mod's page in Options > Mods"
+
+[dependencies]

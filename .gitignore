@@ -1,0 +1,6 @@
+/target
+/dist
+/_ref
+Cargo.lock
+*.litematic
+__pycache__/

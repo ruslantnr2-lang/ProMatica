@@ -1,0 +1,41 @@
+# The project's page in the Horizon mod registry (docs/api/mod-index.md in Horizon's repository).
+# Read from the newest release's tag; the registry entry's own fields win over these.
+name = "Promatica"
+summary = "Litematica for Horizon: schematics as ghost blocks, a verifier, material lists and a printer that builds the missing blocks for you."
+authors = ["ruslantnr2-lang", "keksi2k"]
+license = "MIT"
+description = """
+Promatica is a re-creation of **Litematica** (with its **printer**) for Horizon. Load a schematic, see it as ghost blocks in your world, check your build against it, get a material list, and let the printer place the missing blocks.
+
+## Features
+- **Formats:** `.litematic` (versions 1–7, several regions), `.schem` (Sponge v1–v3: WorldEdit, FAWE, Amulet, Axiom), `.schematic` (MCEdit / WorldEdit up to 1.12) and vanilla structure `.nbt`. Older files are upgraded with Horizon's data fixer, the same way old worlds are.
+- **Overlay:** missing blocks as translucent real block models (chests, banners, heads and other block entities included), optionally visible through walls.
+- **Verifier:** wrong block (red), wrong state (orange), extra block (pink), plus a progress HUD.
+- **Layers:** all / one layer / above / below / range.
+- **Placements:** several at once; move, rotate, mirror, show or hide each; a move mode for mouse wheel and arrow keys. The placements are remembered per world and dimension and restored when you join again.
+- **Save your own:** select an area with the selection tool (a stick: left and right click set the corners, the wheel grows and moves the box) and save it as a `.litematic` (blocks and their states), chunk by chunk as in Litematica: chunks not loaded yet show as frames to fly to.
+- **Material list:** missing, total and carried, with item icons, in the HUD or in the menu, and copied to the clipboard as a table for spreadsheets.
+- **Menu (M):** a screen of its own, drawn with the game's widgets, with a Keys tab: every action can be put on a key of your choice.
+- **Pick block:** middle-click a ghost block to take that block in hand, for building by hand.
+- **Easy place:** look at a ghost block and its block is taken in hand; hold the right mouse button to place it, facing the right way. While it is on, only the schematic's blocks can be placed. Its own *air place* option (off by default) places ghost blocks without a neighbour.
+- **Highlights:** mark missing and wrong blocks through everything, however far away, for all items or just one you pick in the material list.
+- **Printer:** places one missing block within reach every few ticks, from the bottom up. It only clicks when Horizon's own placement logic says the click produces exactly the wanted state (stairs, slabs, logs, furnaces…). Redstone-aware order, repeater, comparator and note block setup after placing, double slabs and stacks, chests, falling blocks. The camera never moves.
+
+Usage: put schematics into `schematics/` next to `options.txt` of your instance (`/hm folder` shows the path), then `/hm load <name>` or press **M**. All commands and keys are in the [README](https://github.com/ruslantnr2-lang/ProMatica#usage).
+
+## What it does and doesn't do
+- **Reads** only files in the instance's `schematics/` folder, and creates that folder if it's missing.
+- **Writes** only the `.litematic` files you save (`/hm save`), into that folder. Settings and remembered placements go through Horizon's mod settings.
+- **Network:** no connections of its own. The only thing sent to a server is what the printer and easy place do: the same block-placing clicks a player would make (with the matching look direction), and hotbar slot changes.
+- **"Open folder"** in the menu opens the schematics folder in your file manager through Horizon's own function.
+- No telemetry, no downloads, no code run from schematic files. Schematics are parsed as data only.
+
+⚠️ On other people's servers, automatic placing may break the rules or trip anti-cheat. The printer is off until you turn it on (`K` or `/hm printer on`). The *air place* options of the printer and easy place (off by default) are noticed by anti-cheat plugins such as Grim.
+
+**Version:** native mods use game internals, so Promatica is pinned to one Horizon commit (currently Nightly 2026-11-08, `fdc87ae`). A newer Nightly needs a new compatibility build.
+
+## Credits
+The idea, the way it's used, the file format and the behaviour come from **[Litematica](https://github.com/maruohon/litematica)** by masa (maruohon), maintained by **[Sakura-Ryoko](https://github.com/sakura-ryoko/litematica)**, and from **[Litematica Printer](https://github.com/aleksilassila/litematica-printer)** by aleksilassila. Promatica is not an official project of these authors, isn't made or endorsed by them, and contains none of their code. Only the file format and the behaviour are re-created. If you like it, go and support the originals.
+
+Menus built with [horizon-menus](https://github.com/keksi2k/horizon-menus). MIT licensed.
+"""
