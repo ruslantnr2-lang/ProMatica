@@ -87,7 +87,7 @@ jobs:
       - name: Prepare a symlink-free Horizon source tree
         run: |
           mkdir -p "$RUNNER_TEMP/horizon-source"
-          rsync -aL --delete --exclude='.git/' "$GITHUB_WORKSPACE/horizon/" "$RUNNER_TEMP/horizon-source/"
+          rsync -aL --delete "$GITHUB_WORKSPACE/horizon/" "$RUNNER_TEMP/horizon-source/"
           if find "$RUNNER_TEMP/horizon-source" -type l -print -quit | grep -q .; then
             echo "::error::Horizon source still contains symlinks"
             exit 1
