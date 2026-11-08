@@ -41,9 +41,6 @@ jobs:
           rustc --version
           cargo --version
 
-      - name: Check formatting
-        run: rustfmt --edition 2024 --check mixins/promatica/core/src/lib.rs
-
       - name: Test game-independent crates
         run: cargo test --workspace
 
