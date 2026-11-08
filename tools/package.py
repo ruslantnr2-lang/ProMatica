@@ -31,8 +31,8 @@ def main() -> None:
 
     toml_path = BUNDLE / "horizon-mixin.toml"
     toml = toml_path.read_text(encoding="utf-8")
-    version = re.search(r'^version\\s*=\\s*"([^"]+)"', toml, re.M).group(1)
-    pinned = re.search(r'^horizon_revision\\s*=\\s*"([0-9a-f]{40})"', toml, re.M).group(1)
+    version = re.search(r'^version\s*=\s*"([^"]+)"', toml, re.M).group(1)
+    pinned = re.search(r'^horizon_revision\s*=\s*"([0-9a-f]{40})"', toml, re.M).group(1)
     horizon = args.horizon or pinned
     if not re.fullmatch(r"[0-9a-f]{40}", horizon):
         raise SystemExit("--horizon must be a 40-character commit hash")
@@ -60,18 +60,18 @@ def main() -> None:
         if not path.is_file() or "target" in path.relative_to(BUNDLE).parts:
             continue
         rel = path.relative_to(BUNDLE)
-        if path.suffix not in (".rs", ".toml") and not path.name.startswith(ALLOWED_TEXT) \\
+        if path.suffix not in (".rs", ".toml") and not path.name.startswith(ALLOWED_TEXT) \
                 and "data" not in rel.parts:
             continue
         arc = f"mixins/{MOD_ID}/{rel.as_posix()}"
         entries[arc] = toml.encode() if rel.as_posix() == "horizon-mixin.toml" else path.read_bytes()
 
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
-        for name, content in sorted(entries.items()):
+        for name, data in sorted(entries.items()):
             info = zipfile.ZipInfo(name, (2026, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
-            archive.writestr(info, content)
+            archive.writestr(info, data)
 
     digest = hashlib.sha256(out.read_bytes()).hexdigest()
     print(f"wrote {out} ({len(entries) - 1} bundle files; Horizon {horizon})")
