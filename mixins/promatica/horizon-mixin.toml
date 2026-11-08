@@ -102,7 +102,7 @@ bindings = [
 # The selection tool: a mouse button while playing (no hook point for the client's own clicks).
 [[injection]]
 id = "mouse"
-target = "horizon_client::game::Game<'_>::play_mouse"
+target = "horizon_client::game::play_input::Game<'_>::play_mouse"
 kind = "HEAD"
 cancellable = true
 helper = "mouse.rs"
@@ -261,7 +261,7 @@ bindings = [{ name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *s
 
 [[injection]]
 id = "menus_screen_pauses"
-target = "horizon_client::game::Game<'_>::pauses_game"
+target = "horizon_client::game::pointer_capture::Game<'_>::pauses_game"
 kind = "HEAD"
 cancellable = true
 helper = "menus_screen_pauses.rs"
