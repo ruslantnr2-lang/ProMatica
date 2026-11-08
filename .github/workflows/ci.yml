@@ -1,0 +1,133 @@
+name: Promatica CI
+
+on:
+  push:
+    branches:
+      - main
+      - "port/**"
+  pull_request:
+    branches:
+      - main
+      - "port/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pro-matica-\${{ github.workflow }}-\${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RUST_VERSION: "1.99.1"
+  HORIZON_REVISION: "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca"
+  HORIZON_MIXINS_REVISION: "5a64af938ec86b00d53d16a408aabc0038fb3e57"
+
+jobs:
+  validate-and-build:
+    name: Test, patch and build Horizon client
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - name: Check out Promatica
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install "$RUST_VERSION" --profile minimal --component rustfmt --component clippy
+          rustup default "$RUST_VERSION"
+          rustc --version
+          cargo --version
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Test game-independent crates
+        run: cargo test --workspace
+
+      - name: Build Promatica package
+        run: python3 tools/package.py
+
+      - name: Validate package manifest and contents
+        run: |
+          python3 - <<'PY'
+          import json
+          import zipfile
+          from pathlib import Path
+
+          package, = Path("dist").glob("promatica-*.hnmod")
+          with zipfile.ZipFile(package) as archive:
+              names = set(archive.namelist())
+              meta = json.loads(archive.read("horizon-native.json"))
+              manifest = "mixins/promatica/horizon-mixin.toml"
+              assert meta["id"] == "promatica", meta
+              assert meta["version"] == "0.1.0", meta
+              assert meta["game"] == "26.3", meta
+              assert meta["horizon"] == "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca", meta
+              assert meta["mixins"] == "5a64af938ec86b00d53d16a408aabc0038fb3e57", meta
+              assert manifest in names, "horizon-mixin.toml is missing"
+              assert "mixins/promatica/LICENSE" in names, "MIT license is missing from package"
+              assert "horizon-native.json" in names
+              print(f"Validated {package} ({len(names)} files)")
+              print(json.dumps(meta, indent=2))
+          PY
+
+      - name: Check out the exact Horizon source
+        uses: actions/checkout@v4
+        with:
+          repository: horizon-rust/horizon
+          ref: \${{ env.HORIZON_REVISION }}
+          path: horizon
+          persist-credentials: false
+
+      - name: Install native-mixins dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libasound2-dev libudev-dev pkg-config rsync
+
+      - name: Install the matching horizon-mixins CLI
+        run: |
+          cargo install --locked --git https://github.com/horizon-rust/horizon-mixins \
+            --rev "$HORIZON_MIXINS_REVISION" --root "$RUNNER_TEMP/horizon-mixins" horizon-mixins-cli
+          echo "$RUNNER_TEMP/horizon-mixins/bin" >> "$GITHUB_PATH"
+
+      - name: Apply Promatica to Horizon source
+        run: |
+          mkdir -p "$RUNNER_TEMP/promatica-mods/promatica"
+          cp -a mixins/promatica/. "$RUNNER_TEMP/promatica-mods/promatica/"
+          horizon-mixins apply \
+            --workspace "$GITHUB_WORKSPACE/horizon" \
+            --mods "$RUNNER_TEMP/promatica-mods" \
+            --out "$RUNNER_TEMP/horizon-with-promatica"
+
+      - name: Cargo check the patched Horizon client
+        working-directory: \${{ runner.temp }}/horizon-with-promatica
+        run: |
+          cargo check --locked --message-format=short \
+            -p horizon-client --bin horizon-client --features horizon-client/mods
+
+      - name: Build the patched Horizon client
+        working-directory: \${{ runner.temp }}/horizon-with-promatica
+        run: |
+          cargo build --profile fast --locked \
+            -p horizon-client --bin horizon-client --features horizon-client/mods
+
+      - name: Upload Promatica package
+        uses: actions/upload-artifact@v4
+        with:
+          name: pro-matica-hnmod-\${{ github.sha }}
+          path: dist/promatica-*.hnmod
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Build summary
+        if: always()
+        run: |
+          {
+            echo "## Promatica CI"
+            echo "- Promatica commit: \`$GITHUB_SHA\`"
+            echo "- Horizon: \`$HORIZON_REVISION\`"
+            echo "- horizon-mixins: \`$HORIZON_MIXINS_REVISION\`"
+          } >> "$GITHUB_STEP_SUMMARY"
